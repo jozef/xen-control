@@ -18,22 +18,30 @@ use strict;
 
 our $VERSION = '0.01';
 
+use Carp::Clan 'croak';
 use base 'Class::Accessor::Fast';
 
-our $XM_COMMAND = 'sudo xm';
+our $XM_COMMAND         = 'sudo xm';
+our $HIBERNATION_FOLDER = '/var/tmp';
 
 =head1 PROPERTIES
 
     xm_cmd
+    hibernation_folder
 
 =head2 xm_cmd
 
 Holds the command that is used execute xm command. By default it is `sudo xm`.
 
+=head2 hibernation_folder
+
+Holds the folder where hibernation domain files will be stored.
+
 =cut
 
 __PACKAGE__->mk_accessors(qw{
     xm_cmd
+    hibernation_folder
 });
 
 =head1 METHODS
@@ -48,6 +56,7 @@ sub new {
     my $class = shift;
     my $self  = $class->SUPER::new({
         'xm_cmd' => $XM_COMMAND,
+        'hibernation_folder' => $HIBERNATION_FOLDER,
         @_
     });
     
@@ -71,7 +80,7 @@ sub ls {
     my @domains;
     foreach my $domain_line (@xm_ls) {
         chomp $domain_line;
-        if ($domain_line !~ /^([-\w]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([-a-z]+)\s+([0-9.]+)$/) {
+        if ($domain_line !~ /^([-_\w]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([-a-z]+)\s+([0-9.]+)$/) {
             warn 'badly formated domain line - "'.$domain_line.'"';
             next;
         }
@@ -92,8 +101,8 @@ sub ls {
 
 =head2 shutdown($domain_name)
 
-Shutdown domain named $domain_name. If the name is all will shutdown
-all domains.
+Shutdown domain named $domain_name. If the name is is not set - undef, will
+shutdown all domains.
 
 =cut
 
@@ -101,13 +110,8 @@ sub shutdown {
     my $self        = shift;
     my $domain_name = shift;
     
-    if ($domain_name eq 'all') {
-        foreach my $domain ($self->ls) {
-            die 'domain with id '.$domain->id.' has a name "all" which is not allowed'
-                if $domain->name eq 'all';
-            
-            $self->shutdown($domain->name);
-        }
+    if (not defined $domain_name) {
+        $self->xm('shutdown', '-a');
         
         return;
     }
@@ -115,6 +119,133 @@ sub shutdown {
     $self->xm('shutdown', $domain_name);
     
     return;
+}
+
+
+=head2 save($domain_name)
+
+Hibernate domain named $domain_name. If the name is is not set - undef, will
+hibernate all domains.
+
+=cut
+
+sub save {
+    my $self        = shift;
+    my $domain_name = shift;
+    
+    if (not defined $domain_name) {
+        foreach my $domain ($self->ls) {
+            # skip domain zero
+            next if $domain->id == 0;
+            
+            die 'domain with id '.$domain->id.' has a "undef" name'
+                if not defined $domain->name;
+            
+            $self->save($domain->name);
+        }
+        
+        return;
+    }
+    
+    $self->xm('save', $domain_name, $self->hibernated_filename($domain_name));
+    
+    return;
+}
+
+
+=head2 restore($domain_name)
+
+Wakeup hibernated domain named $domain_name. If the name is is not set - undef, will
+wakeup all hibernated domains.
+
+=cut
+
+sub restore {
+    my $self        = shift;
+    my $domain_name = shift;
+    
+    if (not defined $domain_name) {
+        foreach my $h_domain_name ($self->hibernated_domains) {
+            die 'domain with "undef" name'
+                if not defined $h_domain_name;
+            
+            $self->restore($h_domain_name);
+        }
+        
+        return;
+    }
+    
+    $self->xm('restore', $self->hibernated_filename($domain_name));
+    
+    return;
+}
+
+
+=head2 hibernated_filename($domain_name)
+
+Returns filename with path of the C<$domain_name> domain.
+
+=cut
+
+sub hibernated_filename {
+    my $self        = shift;
+    my $domain_name = shift;
+    
+    croak 'set domain_name'
+        if not defined $domain_name;
+    
+    return $self->hibernation_folder.'/'.$domain_name.'.xen';
+}
+
+
+=head2 hibernated_domains()
+
+Search through C<< $self->hibernation_folder >> for files that end up with
+C<.xen> extension and return their names without the extension. So the
+return value is an array of hibernated domain names.
+
+=cut
+
+sub hibernated_domains {
+    my $self = shift;
+    
+    my $hfolder = $self->hibernation_folder;
+    
+    opendir(my $tmp_folder, $hfolder)
+        or die 'failed to open "'.$hfolder.'" - '.$!;
+    
+    my @domain_names =
+        map  { substr($_, 0, -4) }                                 # remove .xen from the filename
+        grep { $_ =~ m/^[-_\w]+[.]xen$/ and -f $hfolder.'/'.$_ }   # just files with .xen extension
+        readdir($tmp_folder);
+    
+    closedir($tmp_folder);
+    
+    return @domain_names;
+}
+
+
+=head2 create($domain_name)
+
+Starts domain with C<$domain_name>. If the domain is hibernated the the
+function calls C<restore> otherwise
+C<< $self->xm('create', $domain_name.'.cfg') >>.
+
+=cut
+
+sub create {
+    my $self        = shift;
+    my $domain_name = shift;
+    
+    croak 'pass domain name'
+        if not defined $domain_name;
+    
+    if (-f $self->hibernated_filename($domain_name)) {
+        $self->restore($domain_name);
+        return;
+    }
+    
+    $self->xm('create', $domain_name.'.cfg');
 }
 
 
