@@ -200,7 +200,7 @@ Dies if the execution fails.
 
 sub xm {
     my $self = shift;
-    my @args = map { "'".quotemeta($_)."'" } @_;
+    my @args = map { quotemeta($_) } @_;
     
     my $xm_cmd = $self->xm_cmd.' '.join(' ', @args);
     my @output = `$xm_cmd`;
