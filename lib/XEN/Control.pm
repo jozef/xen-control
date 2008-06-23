@@ -1,15 +1,17 @@
-package XEN::Control;
+package Xen::Control;
 
 =head1 NAME
 
-XEN::Control - control and fetch information about xen domains
+Xen::Control - control and fetch information about xen domains
 
 =head1 SYNOPSIS
 
-    my $xen = XEN::Control->new();
+    my $xen = Xen::Control->new();
     my @domains = $xen->ls;
 
 =head1 DESCRIPTION
+
+This is a wrapper module interface to Xen `xm` command.
 
 =cut
 
@@ -44,30 +46,38 @@ __PACKAGE__->mk_accessors(qw{
     hibernation_folder
 });
 
-=head1 METHODS
+=head1 XM_METHODS
 
-=head2 new()
+C<xm> calling methods methods.
 
-Object constructor.
+=head2 create($domain_name)
+
+Starts domain with C<$domain_name>. If the domain is hibernated the the
+function calls C<restore> otherwise
+C<< $self->xm('create', $domain_name.'.cfg') >>.
 
 =cut
 
-sub new {
-    my $class = shift;
-    my $self  = $class->SUPER::new({
-        'xm_cmd' => $XM_COMMAND,
-        'hibernation_folder' => $HIBERNATION_FOLDER,
-        @_
-    });
+sub create {
+    my $self        = shift;
+    my $domain_name = shift;
     
-    return $self;
+    croak 'pass domain name'
+        if not defined $domain_name;
+    
+    if (-f $self->hibernated_filename($domain_name)) {
+        $self->restore($domain_name);
+        return;
+    }
+    
+    $self->xm('create', $domain_name.'.cfg');
 }
 
 
 =head2 ls
 
-Returns an array of L<XEN::Domain> objects representing curently running
-XEN machines.
+Returns an array of L<Xen::Domain> objects representing curently running
+Xen machines.
 
 =cut
 
@@ -85,7 +95,7 @@ sub ls {
             next;
         }
         
-        push @domains, XEN::Domain->new(
+        push @domains, Xen::Domain->new(
             'name'  => $1,
             'id'    => int($2),
             'mem'   => int($3),
@@ -96,29 +106,6 @@ sub ls {
     }
     
     return @domains;
-}
-
-
-=head2 shutdown($domain_name)
-
-Shutdown domain named $domain_name. If the name is is not set - undef, will
-shutdown all domains.
-
-=cut
-
-sub shutdown {
-    my $self        = shift;
-    my $domain_name = shift;
-    
-    if (not defined $domain_name) {
-        $self->xm('shutdown', '-a');
-        
-        return;
-    }
-    
-    $self->xm('shutdown', $domain_name);
-    
-    return;
 }
 
 
@@ -181,6 +168,69 @@ sub restore {
 }
 
 
+=head2 shutdown($domain_name)
+
+Shutdown domain named $domain_name. If the name is is not set - undef, will
+shutdown all domains.
+
+=cut
+
+sub shutdown {
+    my $self        = shift;
+    my $domain_name = shift;
+    
+    if (not defined $domain_name) {
+        $self->xm('shutdown', '-a');
+        
+        return;
+    }
+    
+    $self->xm('shutdown', $domain_name);
+    
+    return;
+}
+
+
+=head2 xm(@args)
+
+Execute C<< $self->xm_cmd >> with @args and return the output.
+Dies if the execution fails.
+
+=cut
+
+sub xm {
+    my $self = shift;
+    my @args = map { "'".quotemeta($_)."'" } @_;
+    
+    my $xm_cmd = $self->xm_cmd.' '.join(' ', @args);
+    my @output = `$xm_cmd`;
+    
+    die 'failed to execute "'.$xm_cmd.'"' if (($? >> 8) != 0);
+}
+
+
+=head1 METHODS
+
+Other object methods, mostly for internal usage.
+
+=head2 new()
+
+Object constructor.
+
+=cut
+
+sub new {
+    my $class = shift;
+    my $self  = $class->SUPER::new({
+        'xm_cmd' => $XM_COMMAND,
+        'hibernation_folder' => $HIBERNATION_FOLDER,
+        @_
+    });
+    
+    return $self;
+}
+
+
 =head2 hibernated_filename($domain_name)
 
 Returns filename with path of the C<$domain_name> domain.
@@ -225,63 +275,27 @@ sub hibernated_domains {
 }
 
 
-=head2 create($domain_name)
-
-Starts domain with C<$domain_name>. If the domain is hibernated the the
-function calls C<restore> otherwise
-C<< $self->xm('create', $domain_name.'.cfg') >>.
-
-=cut
-
-sub create {
-    my $self        = shift;
-    my $domain_name = shift;
-    
-    croak 'pass domain name'
-        if not defined $domain_name;
-    
-    if (-f $self->hibernated_filename($domain_name)) {
-        $self->restore($domain_name);
-        return;
-    }
-    
-    $self->xm('create', $domain_name.'.cfg');
-}
-
-
-=head2 xm(@args)
-
-Execute C<< $self->xm_cmd >> with @args and return the output.
-Dies if the execution fails.
-
-=cut
-
-sub xm {
-    my $self = shift;
-    my @args = map { "'".quotemeta($_)."'" } @_;
-    
-    my $xm_cmd = $self->xm_cmd.' '.join(' ', @args);
-    my @output = `$xm_cmd`;
-    
-    die 'failed to execute "'.$xm_cmd.'"' if (($? >> 8) != 0);
-}
 
 1;
 
 
 __END__
 
+=head1 TODO
+
+    * rename XEN folder to => Xen
+
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-xen-control at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=XEN-Control>.  I will be notified, and then you'll
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Xen-Control>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc XEN::Control
+    perldoc Xen::Control
 
 You can also look for information at:
 
@@ -289,19 +303,19 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=XEN-Control>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Xen-Control>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/XEN-Control>
+L<http://annocpan.org/dist/Xen-Control>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/XEN-Control>
+L<http://cpanratings.perl.org/d/Xen-Control>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/XEN-Control>
+L<http://search.cpan.org/dist/Xen-Control>
 
 =back
 
@@ -319,4 +333,4 @@ under the same terms as Perl itself.
 
 =cut
 
-1; # End of XEN::Control
+1;

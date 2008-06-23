@@ -5,24 +5,23 @@ use warnings;
 
 #use Test::More 'no_plan';
 use Test::More tests => 15;
-use Test::Exception;
 use Test::Differences;
 use Test::Environment 'Dump';
 
-use XEN::Domain;
+use Xen::Domain;
 
 my @xm_output;
 my @xm_cmds;
 
 BEGIN {
-    use_ok ( 'XEN::Control' ) or exit;
+    use_ok ( 'Xen::Control' ) or exit;
 }
 
 exit main();
 
 sub main {
-    my $xen = XEN::Control->new();
-    isa_ok($xen, 'XEN::Control');
+    my $xen = Xen::Control->new();
+    isa_ok($xen, 'Xen::Control');
     can_ok($xen, qw( xm ls shutdown ));
     
     @xm_output = qw(3 2 1);
@@ -43,7 +42,7 @@ sub main {
     eq_or_diff(
         [ $xen->ls ],
         [
-            XEN::Domain->new(
+            Xen::Domain->new(
                 'name'  => 'Domain-0',
                 'id'    => 0,
                 'mem'   => 1417,
@@ -51,7 +50,7 @@ sub main {
                 'state' => 'r-----',
                 'times' => '249.3',        
             ),
-            XEN::Domain->new(
+            Xen::Domain->new(
                 'name'  => 'lenny',
                 'id'    => 1,
                 'mem'   => 64,
@@ -162,7 +161,7 @@ sub main {
 }
 
 no warnings 'redefine';
-sub XEN::Control::xm {
+sub Xen::Control::xm {
     my $self = shift;
     push @xm_cmds, [ @_ ];
     return @xm_output;

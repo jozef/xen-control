@@ -3,14 +3,26 @@ use warnings;
 use Module::Build;
 
 my $builder = Module::Build->new(
-    module_name         => 'XEN::Control',
+    module_name         => 'Xen::Control',
     license             => 'perl',
-    dist_author         => 'Jozef Kutej <jozef@kutej.net>',
-    dist_version_from   => 'lib/XEN/Control.pm',
-    build_requires => {
-        'Test::More' => 0,
+    dist_author         => 'Jozef Kutej <jkutej@cpan.org>',
+    dist_version_from   => 'lib/Xen/Control.pm',
+    requires => {
+        'Carp::Clan'            => 0,
+        'Class::Accessor::Fast' => 0,
+        'Getopt::Long'          => 0,
+        'Pod::Usage'            => 0,
+        'List::MoreUtils'       => 0,
     },
-    add_to_cleanup      => [ 'XEN-Control-*' ],
+    build_requires => {
+        'Test::More'        => 0,
+        'Test::Environment' => 0,
+        'Test::Differences' => 0,
+    },
+    script_files => [
+        'xmc',
+    ],
+    add_to_cleanup      => [ 'Xen-Control-*' ],
     create_makefile_pl => 'traditional',
 );
 

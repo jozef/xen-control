@@ -1,12 +1,12 @@
-package XEN::Domain;
+package Xen::Domain;
 
 =head1 NAME
 
-XEN::Domain - xen domain representing object
+Xen::Domain - xen domain representing object
 
 =head1 SYNOPSIS
 
-    my $domain = XEN::Domain->new(
+    my $domain = Xen::Domain->new(
         'name'  => 'lenny',
         'id'    => 1,
         'mem'   => 256,
@@ -14,8 +14,12 @@ XEN::Domain - xen domain representing object
         'state' => '-b----',
         'times' => 11.5,
     );
+    
+    print $domain->name, ' uses ', $domain->mem, 'MB of memory.', "\n";
 
 =head1 DESCRIPTION
+
+Object module representing Xen domain.
 
 =cut
 

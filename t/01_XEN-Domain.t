@@ -8,13 +8,13 @@ use Test::More 'no_plan';
 use Test::Differences;
 
 BEGIN {
-    use_ok ( 'XEN::Domain' ) or exit;
+    use_ok ( 'Xen::Domain' ) or exit;
 }
 
 exit main();
 
 sub main {
-    my $domain = XEN::Domain->new(
+    my $domain = Xen::Domain->new(
         'name'  => 'lenny',
         'id'    => 1,
         'mem'   => 256,
@@ -41,7 +41,7 @@ sub main {
             'vcpus' => 2,
             'state' => '-b----',
             'times' => 11.5,
-        }, 'XEN::Domain'),
+        }, 'Xen::Domain'),
         'check object constructor',
     );
     
