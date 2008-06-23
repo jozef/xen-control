@@ -281,10 +281,6 @@ sub hibernated_domains {
 
 __END__
 
-=head1 TODO
-
-    * rename XEN folder to => Xen
-
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-xen-control at rt.cpan.org>, or through
