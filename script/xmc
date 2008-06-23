@@ -43,6 +43,7 @@ use Xen::Control;
 
 our @AVAILABLE_CMDS = qw(
     ls
+    list
     create
     shutdown
     save
@@ -66,7 +67,13 @@ sub main {
     pod2usage if none { $cmd eq $_ } @AVAILABLE_CMDS;
     
     my $xen = Xen::Control->new();
-    $xen->$cmd($domain_name);
+    
+    if (($cmd eq 'ls') or ($cmd eq 'list')) {
+        print $xen->xm('list');
+    }
+    else {
+        $xen->$cmd($domain_name);
+    }
     
     return 0;
 }

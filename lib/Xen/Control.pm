@@ -21,6 +21,8 @@ use strict;
 our $VERSION = '0.01';
 
 use Carp::Clan 'croak';
+use Xen::Domain;
+
 use base 'Class::Accessor::Fast';
 
 our $XM_COMMAND         = 'sudo xm';
@@ -76,15 +78,19 @@ sub create {
 
 =head2 ls
 
+=head2 list
+
 Returns an array of L<Xen::Domain> objects representing curently running
 Xen machines.
 
 =cut
 
-sub ls {
+*ls = *list;
+
+sub list {
     my $self = shift;
     
-    my @xm_ls = $self->xm('ls');
+    my @xm_ls = $self->xm('list');
     shift @xm_ls;
     
     my @domains;
@@ -206,6 +212,8 @@ sub xm {
     my @output = `$xm_cmd`;
     
     die 'failed to execute "'.$xm_cmd.'"' if (($? >> 8) != 0);
+    
+    return @output;
 }
 
 

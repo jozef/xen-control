@@ -22,7 +22,7 @@ exit main();
 sub main {
     my $xen = Xen::Control->new();
     isa_ok($xen, 'Xen::Control');
-    can_ok($xen, qw( xm ls shutdown ));
+    can_ok($xen, qw( xm ls list shutdown ));
     
     @xm_output = qw(3 2 1);
     is_deeply([ $xen->xm('ls') ], [ qw(3 2 1) ], 'test our test stuff');
