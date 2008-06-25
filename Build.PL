@@ -20,10 +20,11 @@ my $builder = Module::Build->new(
         'Test::Differences' => 0,
     },
     script_files => [
-        'xmc',
+        'script/xmc',
     ],
-    add_to_cleanup      => [ 'Xen-Control-*' ],
+    add_to_cleanup     => [ 'Xen-Control-*' ],
     create_makefile_pl => 'traditional',
+    sign               => 1,
 );
 
 $builder->create_build_script();

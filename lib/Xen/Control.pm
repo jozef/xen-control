@@ -18,7 +18,7 @@ This is a wrapper module interface to Xen `xm` command.
 use warnings;
 use strict;
 
-our $VERSION = '0.01';
+our $VERSION = '0.03';
 
 use Carp::Clan 'croak';
 use Xen::Domain;
@@ -26,16 +26,23 @@ use Xen::Domain;
 use base 'Class::Accessor::Fast';
 
 our $XM_COMMAND         = 'sudo xm';
+our $RM_COMMAND         = 'sudo rm';
 our $HIBERNATION_FOLDER = '/var/tmp';
 
 =head1 PROPERTIES
 
     xm_cmd
+    rm_cmd
     hibernation_folder
 
 =head2 xm_cmd
 
 Holds the command that is used execute xm command. By default it is `sudo xm`.
+
+=head2 rm_cmd
+
+Holds the command that is executed to remove xen state files after beeing
+restored. default is `sudo rm`.
 
 =head2 hibernation_folder
 
@@ -45,6 +52,7 @@ Holds the folder where hibernation domain files will be stored.
 
 __PACKAGE__->mk_accessors(qw{
     xm_cmd
+    rm_cmd
     hibernation_folder
 });
 
@@ -170,6 +178,10 @@ sub restore {
     
     $self->xm('restore', $self->hibernated_filename($domain_name));
     
+    # remove state file of restored machine
+    my $rm_cmd = $self->rm_cmd.' '.$self->hibernated_filename($domain_name);
+    `$rm_cmd`;
+    
     return;
 }
 
@@ -231,6 +243,7 @@ sub new {
     my $class = shift;
     my $self  = $class->SUPER::new({
         'xm_cmd' => $XM_COMMAND,
+        'rm_cmd' => $RM_COMMAND,
         'hibernation_folder' => $HIBERNATION_FOLDER,
         @_
     });
@@ -288,6 +301,10 @@ sub hibernated_domains {
 
 
 __END__
+
+=head1 TODO
+
+Try IPC::System::Simple instead of ``.
 
 =head1 BUGS
 
