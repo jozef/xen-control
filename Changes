@@ -1,4 +1,8 @@
-Revision history for XEN-Control
+Revision history for Xen-Control
+
+0.04    26. Jun 2008
+    - fixed ls/list tests
+    - no sudo rm in tests (ups...)
 
 0.03    25. Jun 2008
     - remove the state files after restore of the domain

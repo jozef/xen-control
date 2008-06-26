@@ -24,6 +24,7 @@ my $builder = Module::Build->new(
     ],
     add_to_cleanup     => [ 'Xen-Control-*' ],
     create_makefile_pl => 'traditional',
+    create_readme      => 1,
     sign               => 1,
 );
 

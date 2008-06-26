@@ -18,7 +18,7 @@ This is a wrapper module interface to Xen `xm` command.
 use warnings;
 use strict;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Carp::Clan 'croak';
 use Xen::Domain;
@@ -305,6 +305,10 @@ __END__
 =head1 TODO
 
 Try IPC::System::Simple instead of ``.
+
+=head1 LINKS
+
+Subversion repository L<https://cle.sk/repos/pub/cpan/Xen-Control/>
 
 =head1 BUGS
 

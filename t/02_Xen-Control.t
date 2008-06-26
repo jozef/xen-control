@@ -20,13 +20,16 @@ BEGIN {
 exit main();
 
 sub main {
-    my $xen = Xen::Control->new();
+    my $xen = Xen::Control->new(
+        'rm_cmd' => 'echo',
+    );
+    
     isa_ok($xen, 'Xen::Control');
     can_ok($xen, qw( xm ls list shutdown ));
     
     @xm_output = qw(3 2 1);
-    is_deeply([ $xen->xm('ls') ], [ qw(3 2 1) ], 'test our test stuff');
-    is_deeply([ @xm_cmds ], [ [ 'ls' ] ], 'test our test stuff');
+    is_deeply([ $xen->xm('list') ], [ qw(3 2 1) ], 'test our test stuff');
+    is_deeply([ @xm_cmds ], [ [ 'list' ] ], 'test our test stuff');
     
     # test $xen->create
     @xm_cmds   = ();
@@ -59,7 +62,7 @@ sub main {
                 'times' => '13.7',        
             )
         ],
-        '$xen->xm("ls")',
+        '$xen->xm("list")',
     );
     
     # test $xen->shutdown
@@ -94,7 +97,7 @@ sub main {
     $xen->save;
     eq_or_diff(
         [ @xm_cmds ],
-        [ ['ls'], [ 'save', 'lenny', '/var/tmp/lenny.xen' ], [ 'save', 'etch', '/var/tmp/etch.xen' ] ],
+        [ ['list'], [ 'save', 'lenny', '/var/tmp/lenny.xen' ], [ 'save', 'etch', '/var/tmp/etch.xen' ] ],
         '$xen->save - hibernate all machines'
     );
         
