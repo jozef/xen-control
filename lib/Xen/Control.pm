@@ -304,7 +304,8 @@ __END__
 
 =head1 TODO
 
-Try IPC::System::Simple instead of ``.
+    * Try IPC::System::Simple instead of ``.
+    * allow `xmc machine-name` to start/restore domain (if started do nothing)
 
 =head1 LINKS
 
