@@ -21,14 +21,15 @@ all running Xen machines.
 'save', 'restore' functions will by default save/restore the state file
 to/from '/var/tmp'. The file name will be constructed from the domain name
 and extension '.xen' will be added. Thus you don't have to specify state 
-file name.
+file name. Shortcut commands are 's', 'r';
 
 'create' will start domain either from state file if present or by starting
-the machine by `xm create domain-name.cfg`.
+the machine by `xm create domain-name.cfg`. Shortcut command is 'c'.
 
 The main benefit to `xm` usage is to be able to save/hibernate all machines by
 a single command and then later by one command either to restore/wakeup or
 "power on" the virtual machines.
+
 
 =cut
 
@@ -45,9 +46,12 @@ our @AVAILABLE_CMDS = qw(
     ls
     list
     create
+    c
     shutdown
     save
+    s
     restore
+    r
 );
 
 exit main();
@@ -67,6 +71,11 @@ sub main {
     pod2usage if none { $cmd eq $_ } @AVAILABLE_CMDS;
     
     my $xen = Xen::Control->new();
+
+    # shortcuts    
+    $cmd = 'create'  if ($cmd eq 'c');
+    $cmd = 'save'    if ($cmd eq 's');
+    $cmd = 'restore' if ($cmd eq 'r');
     
     if (($cmd eq 'ls') or ($cmd eq 'list')) {
         print $xen->xm('list');

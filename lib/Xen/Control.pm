@@ -18,7 +18,7 @@ This is a wrapper module interface to Xen `xm` command.
 use warnings;
 use strict;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05_02';
 
 use Carp::Clan 'croak';
 use Xen::Domain;
